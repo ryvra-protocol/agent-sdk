@@ -104,6 +104,15 @@ await treasury.submitPayoutIntent({
 ```ts
 import { AgentGatewayClient, PortfolioProfileClient } from '@ryvra/agent-sdk';
 
+const gateway = new AgentGatewayClient({
+  baseUrl: 'https://agent-gateway.ryvra.example',
+  auth: async () => process.env.RYVRA_GATEWAY_TOKEN ?? '',
+  signing: {
+    keyId: process.env.RYVRA_SIGNING_KEY_ID ?? 'portfolio-agent',
+    secret: process.env.RYVRA_SIGNING_SECRET ?? '',
+  },
+});
+
 const portfolio = new PortfolioProfileClient(gateway, {
   autonomyLevel: 'A3',
   actionAllowlist: ['REBALANCE'],
@@ -129,7 +138,16 @@ await portfolio.submitRebalanceIntent({
 ### Procurement
 
 ```ts
-import { ProcurementProfileClient } from '@ryvra/agent-sdk';
+import { AgentGatewayClient, ProcurementProfileClient } from '@ryvra/agent-sdk';
+
+const gateway = new AgentGatewayClient({
+  baseUrl: 'https://agent-gateway.ryvra.example',
+  auth: async () => process.env.RYVRA_GATEWAY_TOKEN ?? '',
+  signing: {
+    keyId: process.env.RYVRA_SIGNING_KEY_ID ?? 'procurement-agent',
+    secret: process.env.RYVRA_SIGNING_SECRET ?? '',
+  },
+});
 
 const procurement = new ProcurementProfileClient(gateway, {
   autonomyLevel: 'A1',
@@ -157,7 +175,16 @@ await procurement.submitVendorPaymentIntent({
 ### Market
 
 ```ts
-import { MarketProfileClient } from '@ryvra/agent-sdk';
+import { AgentGatewayClient, MarketProfileClient } from '@ryvra/agent-sdk';
+
+const gateway = new AgentGatewayClient({
+  baseUrl: 'https://agent-gateway.ryvra.example',
+  auth: async () => process.env.RYVRA_GATEWAY_TOKEN ?? '',
+  signing: {
+    keyId: process.env.RYVRA_SIGNING_KEY_ID ?? 'market-agent',
+    secret: process.env.RYVRA_SIGNING_SECRET ?? '',
+  },
+});
 
 const market = new MarketProfileClient(gateway, {
   autonomyLevel: 'A3',
@@ -186,7 +213,16 @@ await market.submitOpenPositionIntent({
 ### Settlement
 
 ```ts
-import { SettlementProfileClient } from '@ryvra/agent-sdk';
+import { AgentGatewayClient, SettlementProfileClient } from '@ryvra/agent-sdk';
+
+const gateway = new AgentGatewayClient({
+  baseUrl: 'https://agent-gateway.ryvra.example',
+  auth: async () => process.env.RYVRA_GATEWAY_TOKEN ?? '',
+  signing: {
+    keyId: process.env.RYVRA_SIGNING_KEY_ID ?? 'settlement-agent',
+    secret: process.env.RYVRA_SIGNING_SECRET ?? '',
+  },
+});
 
 const settlement = new SettlementProfileClient(gateway, {
   autonomyLevel: 'A2',

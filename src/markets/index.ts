@@ -9,4 +9,3 @@ export type {
   ClosePositionIntent,
   ClosePositionIntentInput,
 } from '../intent/types.js';
-export * from '../market/index.js';
