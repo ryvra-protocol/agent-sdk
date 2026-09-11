@@ -12,6 +12,19 @@ async function readJson(request: IncomingMessage): Promise<unknown> {
   return body ? JSON.parse(body) as unknown : undefined;
 }
 
+interface StoredIntentRecord {
+  intent: {
+    intentId: string;
+    action: string;
+    correlationId: string;
+    actorId?: string;
+    profileType?: string;
+    metadata?: Record<string, unknown>;
+  };
+  status: string;
+  reasonCode?: string;
+}
+
 export interface MockGatewayState {
   lastRequest?: {
     method?: string;
@@ -19,8 +32,50 @@ export interface MockGatewayState {
     headers: IncomingMessage['headers'];
     body: unknown;
   };
-  intents: Map<string, unknown>;
+  intents: Map<string, StoredIntentRecord>;
   replays: Set<string>;
+}
+
+function buildAuditEvents(record: StoredIntentRecord | undefined, correlationId: string, intentId: string) {
+  if (!record) {
+    return [
+      {
+        eventId: 'audit-1',
+        correlationId,
+        intentId,
+        type: 'INTENT_SUBMITTED',
+        timestamp: '2026-09-11T07:00:00.000Z',
+      },
+    ];
+  }
+
+  return [
+    {
+      eventId: `${intentId}-submitted`,
+      correlationId,
+      intentId,
+      type: 'INTENT_SUBMITTED',
+      timestamp: '2026-09-11T07:00:00.000Z',
+      payload: {
+        status: 'PENDING',
+        profileType: record.intent.profileType,
+        actorId: record.intent.actorId,
+      },
+    },
+    {
+      eventId: `${intentId}-${record.status.toLowerCase()}`,
+      correlationId,
+      intentId,
+      type: `INTENT_${record.status}`,
+      timestamp: '2026-09-11T07:01:00.000Z',
+      reasonCode: record.reasonCode,
+      payload: {
+        status: record.status,
+        profileType: record.intent.profileType,
+        actorId: record.intent.actorId,
+      },
+    },
+  ];
 }
 
 export async function startMockGateway() {
@@ -54,7 +109,7 @@ export async function startMockGateway() {
     response.setHeader('content-type', 'application/json');
 
     if (request.method === 'POST' && url.pathname === '/v1/intents') {
-      const intent = (body as { intent: { intentId: string; action: string; correlationId: string } }).intent;
+      const intent = (body as { intent: StoredIntentRecord['intent'] }).intent;
       if (idempotencyKey && state.replays.has(idempotencyKey)) {
         response.statusCode = 409;
         response.end(JSON.stringify({
@@ -81,15 +136,24 @@ export async function startMockGateway() {
         state.replays.add(idempotencyKey);
       }
 
-      state.intents.set(intent.intentId, intent);
+      const metadata = intent.metadata ?? {};
+      const status = typeof metadata.mockStatus === 'string' ? metadata.mockStatus.toUpperCase() : 'PENDING';
+      const reasonCode = typeof metadata.mockReasonCode === 'string' ? metadata.mockReasonCode : undefined;
+      state.intents.set(intent.intentId, { intent, status, reasonCode });
       response.statusCode = 201;
-      response.end(JSON.stringify({ accepted: true, intent }));
+      response.end(JSON.stringify({ accepted: true, intent, status, reasonCode, correlationId: intent.correlationId }));
       return;
     }
 
     if (request.method === 'GET' && url.pathname.startsWith('/v1/intents/')) {
       const intentId = url.pathname.split('/').pop() ?? '';
-      response.end(JSON.stringify({ intent: state.intents.get(intentId), status: 'PENDING' }));
+      const record = state.intents.get(intentId);
+      response.end(JSON.stringify({
+        intent: record?.intent,
+        status: record?.status ?? 'PENDING',
+        reasonCode: record?.reasonCode,
+        correlationId: record?.intent.correlationId,
+      }));
       return;
     }
 
@@ -118,22 +182,11 @@ export async function startMockGateway() {
     }
 
     if (request.method === 'GET' && url.pathname === '/v1/audit-events') {
-      response.end(JSON.stringify([
-        {
-          eventId: 'audit-1',
-          correlationId: correlationId ?? url.searchParams.get('correlationId') ?? 'corr-default',
-          intentId: url.searchParams.get('intentId') ?? 'intent-1',
-          type: 'INTENT_SUBMITTED',
-          timestamp: '2026-09-11T07:00:00.000Z',
-        },
-        {
-          eventId: 'audit-2',
-          correlationId: correlationId ?? url.searchParams.get('correlationId') ?? 'corr-default',
-          intentId: url.searchParams.get('intentId') ?? 'intent-1',
-          type: 'INTENT_PENDING',
-          timestamp: '2026-09-11T07:01:00.000Z',
-        },
-      ]));
+      const intentId = url.searchParams.get('intentId') ?? [...state.intents.keys()][0] ?? 'intent-1';
+      const record = state.intents.get(intentId)
+        ?? [...state.intents.values()].find((candidate) => candidate.intent.correlationId === url.searchParams.get('correlationId'));
+      const effectiveCorrelationId = correlationId ?? url.searchParams.get('correlationId') ?? record?.intent.correlationId ?? 'corr-default';
+      response.end(JSON.stringify(buildAuditEvents(record, effectiveCorrelationId, intentId)));
       return;
     }
 

@@ -1,6 +1,6 @@
 import { ValidationError } from '../core/errors.js';
 import { createIdempotencyKey } from '../core/idempotency.js';
-import type { BaseIntentInput, FinancialIntent, FinancialIntentAction } from '../core/types.js';
+import type { BaseIntentInput, FinancialIntent, FinancialIntentAction, IntentAmount } from '../core/types.js';
 
 const REQUIRED_BASE_FIELDS: Array<keyof BaseIntentInput> = [
   'intentId',
@@ -142,6 +142,7 @@ export function buildIntent<TAction extends FinancialIntentAction, TDetails exte
   action: TAction,
   input: BaseIntentInput,
   details: TDetails,
+  canonical: Partial<Pick<FinancialIntent, 'amount' | 'chainId' | 'recipient' | 'venue' | 'profileType'>> = {},
 ): FinancialIntent<TAction, TDetails> {
   assertRequiredBaseFields(input);
   validateIntentDetails(action, details, input);
@@ -152,15 +153,52 @@ export function buildIntent<TAction extends FinancialIntentAction, TDetails exte
     actorId: input.actorId,
     action,
     assetId: input.assetId,
+    amount: canonical.amount,
+    chainId: canonical.chainId,
+    recipient: canonical.recipient,
+    venue: canonical.venue,
     purpose: input.purpose,
     policyVersion: input.policyVersion,
     correlationId: input.correlationId,
     idempotencyKey: input.idempotencyKey ?? createIdempotencyKey(action.toLowerCase()),
     expiresAt: normalizeExpiresAt(input),
     mandateId: input.mandateId,
+    profileType: canonical.profileType,
     metadata: input.metadata,
     details,
   });
+}
+
+function assertNonEmptyString(
+  field: string,
+  value: unknown,
+  input: Pick<FinancialIntent, 'intentId' | 'correlationId'>,
+  reasonCode: string,
+): void {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new ValidationError(`Intent is missing required ${field}`, {
+      reasonCode,
+      intentId: input.intentId,
+      correlationId: input.correlationId,
+      details: { field },
+    });
+  }
+}
+
+function assertTopLevelAmount(input: FinancialIntent): void {
+  if (input.amount === undefined) {
+    return;
+  }
+
+  const amount = input.amount as IntentAmount;
+  if (typeof amount?.value !== 'string' || amount.value.trim() === '') {
+    throw new ValidationError('Intent amount must be a valid canonical amount payload', {
+      reasonCode: 'VALIDATION_INVALID_AMOUNT',
+      intentId: input.intentId,
+      correlationId: input.correlationId,
+      details: { field: 'amount' },
+    });
+  }
 }
 
 export function validateFinancialIntent(intent: FinancialIntent, clockSkewMs = 30_000): void {
@@ -171,6 +209,12 @@ export function validateFinancialIntent(intent: FinancialIntent, clockSkewMs = 3
       correlationId: intent.correlationId,
     });
   }
+
+  assertNonEmptyString('correlationId', intent.correlationId, intent, 'CORRELATION_ID_REQUIRED');
+  assertNonEmptyString('idempotencyKey', intent.idempotencyKey, intent, 'IDEMPOTENCY_KEY_REQUIRED');
+  assertNonEmptyString('mandateId', intent.mandateId, intent, 'MANDATE_ID_REQUIRED');
+  assertNonEmptyString('policyVersion', intent.policyVersion, intent, 'POLICY_VERSION_REQUIRED');
+  assertTopLevelAmount(intent);
 
   const expiresAt = new Date(intent.expiresAt);
   if (Number.isNaN(expiresAt.valueOf()) || expiresAt.valueOf() + clockSkewMs < Date.now()) {

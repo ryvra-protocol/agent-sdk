@@ -64,7 +64,7 @@ function normalizeDecimal(value: string): { negative: boolean; whole: string; fr
   return { negative, whole, fraction };
 }
 
-function compareDecimalStrings(left: string, right: string): number | undefined {
+export function compareDecimalStrings(left: string, right: string): number | undefined {
   const normalizedLeft = normalizeDecimal(left);
   const normalizedRight = normalizeDecimal(right);
 
@@ -133,8 +133,8 @@ export function ensureWithinSoftLimit(intent: FinancialIntent<any, any>, softLim
     return;
   }
 
-  const rawAmount = intent.details.amount;
-  const amount = rawAmount && typeof rawAmount === 'object' && 'value' in rawAmount ? String(rawAmount.value) : undefined;
+  const amount = intent.amount?.value
+    ?? (intent.details.amount && typeof intent.details.amount === 'object' && 'value' in intent.details.amount ? String(intent.details.amount.value) : undefined);
 
   if (!amount) {
     throw new ValidationError('Intent does not expose a comparable amount for soft-limit enforcement', {

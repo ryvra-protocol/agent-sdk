@@ -10,23 +10,82 @@ export type FinancialIntentAction =
   | 'OPEN_POSITION'
   | 'CLOSE_POSITION';
 
+export type AutonomousProfileType = 'TREASURY' | 'PORTFOLIO' | 'PROCUREMENT' | 'MARKET' | 'SETTLEMENT';
+export type AutonomyLevel = 'A0' | 'A1' | 'A2' | 'A3';
+
 export interface IntentAmount {
   value: string;
   currency?: string;
 }
 
-export interface FinancialIntent<TAction extends FinancialIntentAction = FinancialIntentAction, TDetails extends object = Record<string, unknown>> {
+export interface SpendWindowLimit {
+  maxAmount: string;
+  windowMs: number;
+  assetId?: string;
+  currency?: string;
+}
+
+export interface SpendLimits {
+  perTransaction?: Record<string, string>;
+  perWindow?: SpendWindowLimit[];
+}
+
+export interface RateLimitRule {
+  maxRequests: number;
+  windowMs: number;
+  action?: FinancialIntentAction;
+}
+
+export interface EscalationThresholds {
+  reviewAmount?: string;
+  challengeAmount?: string;
+  delayAmount?: string;
+  quarantineAmount?: string;
+}
+
+export interface RequiredAuthorityRefs {
+  mandateId: string;
+  policyVersion: string;
+  riskAssessmentId?: string;
+  authorizationId?: string;
+}
+
+export interface TimeoutDefaults {
+  submitMs?: number;
+  statusMs?: number;
+  approvalMs?: number;
+}
+
+export interface AutonomousProfileConfig {
+  profileType: AutonomousProfileType;
+  autonomyLevel: AutonomyLevel;
+  actionAllowlist: FinancialIntentAction[];
+  spendLimits?: SpendLimits;
+  rateLimits?: RateLimitRule[];
+  escalationThresholds?: EscalationThresholds;
+  requiredAuthorityRefs: RequiredAuthorityRefs;
+  retryPolicy?: RetryOptions;
+  timeoutDefaults?: TimeoutDefaults;
+  maxExpiryWindowMs?: number;
+}
+
+export interface FinancialIntent<TAction extends FinancialIntentAction = FinancialIntentAction, TDetails extends object = object> {
   intentId: string;
   actorType: ActorType;
   actorId: string;
   action: TAction;
   assetId: string;
+  amount?: IntentAmount;
+  chainId?: string;
+  recipient?: string;
+  venue?: string;
   purpose: string;
   policyVersion: string;
   correlationId: string;
   idempotencyKey: string;
   expiresAt: string;
   mandateId: string;
+  profileType?: AutonomousProfileType;
   metadata?: Record<string, unknown>;
   details: TDetails;
 }
@@ -36,12 +95,16 @@ export interface BaseIntentInput {
   actorType?: ActorType;
   actorId: string;
   assetId: string;
+  chainId?: string;
+  recipient?: string;
+  venue?: string;
   purpose: string;
   policyVersion: string;
   correlationId: string;
   idempotencyKey?: string;
   expiresAt: string | Date;
   mandateId: string;
+  profileType?: AutonomousProfileType;
   metadata?: Record<string, unknown>;
 }
 
