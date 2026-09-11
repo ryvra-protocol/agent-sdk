@@ -142,7 +142,7 @@ export class GatewayTransport {
             throw mapGatewayError(response.status, payload as GatewayErrorPayload);
           }
 
-          if (response.status >= 500) {
+          if (response.status === 502 || response.status === 503 || response.status === 504) {
             throw new GatewayUnavailableError(typeof payload === 'string' && payload ? payload : 'Agent gateway is unavailable', {
               reasonCode: 'GATEWAY_UNAVAILABLE',
               correlationId: context.correlationId,

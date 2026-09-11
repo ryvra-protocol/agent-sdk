@@ -30,7 +30,16 @@ export async function startMockGateway() {
   };
 
   const server = createServer(async (request: IncomingMessage, response: ServerResponse) => {
-    const body = await readJson(request);
+    let body: unknown;
+    try {
+      body = await readJson(request);
+    } catch {
+      response.statusCode = 400;
+      response.setHeader('content-type', 'application/json');
+      response.end(JSON.stringify({ message: 'Malformed JSON body', reasonCode: 'INVALID_JSON' }));
+      return;
+    }
+
     state.lastRequest = {
       method: request.method,
       url: request.url,
