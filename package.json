@@ -1,0 +1,78 @@
+{
+  "name": "@ryvra/agent-sdk",
+  "version": "0.1.0",
+  "description": "Gateway-only SDK for Ryvra financial agents",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js"
+    },
+    "./intent": {
+      "types": "./dist/intent/index.d.ts",
+      "import": "./dist/intent/index.js"
+    },
+    "./agents": {
+      "types": "./dist/agents/index.d.ts",
+      "import": "./dist/agents/index.js"
+    },
+    "./mandates": {
+      "types": "./dist/mandates/index.d.ts",
+      "import": "./dist/mandates/index.js"
+    },
+    "./policy-risk": {
+      "types": "./dist/policy-risk/index.d.ts",
+      "import": "./dist/policy-risk/index.js"
+    },
+    "./payments": {
+      "types": "./dist/payments/index.d.ts",
+      "import": "./dist/payments/index.js"
+    },
+    "./markets": {
+      "types": "./dist/markets/index.d.ts",
+      "import": "./dist/markets/index.js"
+    },
+    "./treasury": {
+      "types": "./dist/treasury/index.d.ts",
+      "import": "./dist/treasury/index.js"
+    },
+    "./audit": {
+      "types": "./dist/audit/index.d.ts",
+      "import": "./dist/audit/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "docs"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.check.json --noEmit",
+    "test": "vitest run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://localhost:26831/ryvra-protocol/agent-sdk"
+  },
+  "keywords": [
+    "ryvra",
+    "agents",
+    "gateway",
+    "sdk",
+    "intent"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/node": "22.20.2",
+    "typescript": "7.0.2",
+    "vitest": "5.0.0"
+  }
+}
