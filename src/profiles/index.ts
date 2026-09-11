@@ -433,7 +433,7 @@ export abstract class AutonomousProfileClient<TProfileType extends AutonomousPro
     };
   }
 
-  async getIntentDecision<TIntent extends FinancialIntent = FinancialIntent>(intentId: string, correlationId = intentId): Promise<GatewayDecision<TIntent>> {
+  async getIntentDecision<TIntent extends FinancialIntent = FinancialIntent>(intentId: string, correlationId?: string): Promise<GatewayDecision<TIntent>> {
     const response = await this.client.getIntent<TIntent>(intentId, correlationId) as GatewayDecisionResponse<TIntent>;
     return normalizeGatewayDecision(response);
   }
@@ -441,16 +441,16 @@ export abstract class AutonomousProfileClient<TProfileType extends AutonomousPro
   async handleIntentDecision<TIntent extends FinancialIntent = FinancialIntent, TResult = void>(
     intentId: string,
     handlers: EscalationHandlers<TIntent, TResult>,
-    correlationId = intentId,
+    correlationId?: string,
   ): Promise<TResult | undefined> {
     return handleGatewayDecision(await this.getIntentDecision<TIntent>(intentId, correlationId), handlers);
   }
 
-  approveIntent(intentId: string, approvalPayload: ApprovalPayload, correlationId = intentId): Promise<{ approved: boolean; intentId: string }> {
+  approveIntent(intentId: string, approvalPayload: ApprovalPayload, correlationId?: string): Promise<{ approved: boolean; intentId: string }> {
     return this.client.approveIntent(intentId, approvalPayload, correlationId);
   }
 
-  cancelIntent(intentId: string, correlationId = intentId): Promise<{ cancelled: boolean; intentId: string }> {
+  cancelIntent(intentId: string, correlationId?: string): Promise<{ cancelled: boolean; intentId: string }> {
     return this.client.cancelIntent(intentId, correlationId);
   }
 

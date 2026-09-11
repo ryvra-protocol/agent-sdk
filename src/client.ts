@@ -43,16 +43,16 @@ export class AgentGatewayClient {
     }, true);
   }
 
-  getIntent<TIntent extends FinancialIntent<any, any>>(intentId: string, correlationId = intentId): Promise<{ intent: TIntent; status: string }> {
-    return this.#transport.get(gatewayRoutes.intent(intentId), { correlationId });
+  getIntent<TIntent extends FinancialIntent<any, any>>(intentId: string, correlationId?: string): Promise<{ intent: TIntent; status: string }> {
+    return this.#transport.get(gatewayRoutes.intent(intentId), correlationId ? { correlationId } : {});
   }
 
-  approveIntent(intentId: string, approvalPayload: ApprovalPayload, correlationId = intentId): Promise<{ approved: boolean; intentId: string }> {
-    return this.#transport.post(gatewayRoutes.approveIntent(intentId), approvalPayload, { correlationId }, false);
+  approveIntent(intentId: string, approvalPayload: ApprovalPayload, correlationId?: string): Promise<{ approved: boolean; intentId: string }> {
+    return this.#transport.post(gatewayRoutes.approveIntent(intentId), approvalPayload, correlationId ? { correlationId } : {}, false);
   }
 
-  cancelIntent(intentId: string, correlationId = intentId): Promise<{ cancelled: boolean; intentId: string }> {
-    return this.#transport.post(gatewayRoutes.cancelIntent(intentId), {}, { correlationId }, false);
+  cancelIntent(intentId: string, correlationId?: string): Promise<{ cancelled: boolean; intentId: string }> {
+    return this.#transport.post(gatewayRoutes.cancelIntent(intentId), {}, correlationId ? { correlationId } : {}, false);
   }
 
   getAgentStatus(agentId: string): Promise<AgentStatus> {
