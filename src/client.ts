@@ -2,6 +2,7 @@ import { AgentsApi, type AgentStatus } from './agents/index.js';
 import { AuditApi, type AuditEvent, type AuditEventFilters } from './audit/index.js';
 import { ensureKnownCapability, ensureMandateActive, ensureWithinSoftLimit } from './core/guards.js';
 import { GatewayTransport } from './core/http.js';
+import { gatewayRoutes } from './core/routes.js';
 import type { GatewayClientConfig, FinancialIntent, SubmitIntentOptions } from './core/types.js';
 import { MandatesApi } from './mandates/index.js';
 import { PolicyRiskApi } from './policy-risk/index.js';
@@ -36,22 +37,22 @@ export class AgentGatewayClient {
     ensureMandateActive(intent, options.mandate, this.#clockSkewMs);
     ensureWithinSoftLimit(intent, options.softLimit ?? options.mandate?.softLimits?.[intent.assetId]);
 
-    return this.#transport.post('/v1/intents', { intent }, {
+    return this.#transport.post(gatewayRoutes.intents, { intent }, {
       correlationId: intent.correlationId,
       idempotencyKey: intent.idempotencyKey,
     }, true);
   }
 
   getIntent<TIntent extends FinancialIntent<any, any>>(intentId: string, correlationId = intentId): Promise<{ intent: TIntent; status: string }> {
-    return this.#transport.get(`/v1/intents/${intentId}`, { correlationId });
+    return this.#transport.get(gatewayRoutes.intent(intentId), { correlationId });
   }
 
   approveIntent(intentId: string, approvalPayload: ApprovalPayload, correlationId = intentId): Promise<{ approved: boolean; intentId: string }> {
-    return this.#transport.post(`/v1/intents/${intentId}/approve`, approvalPayload, { correlationId }, false);
+    return this.#transport.post(gatewayRoutes.approveIntent(intentId), approvalPayload, { correlationId }, false);
   }
 
   cancelIntent(intentId: string, correlationId = intentId): Promise<{ cancelled: boolean; intentId: string }> {
-    return this.#transport.post(`/v1/intents/${intentId}/cancel`, {}, { correlationId }, false);
+    return this.#transport.post(gatewayRoutes.cancelIntent(intentId), {}, { correlationId }, false);
   }
 
   getAgentStatus(agentId: string): Promise<AgentStatus> {

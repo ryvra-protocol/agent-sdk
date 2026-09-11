@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import type { GatewayTransport } from '../core/http.js';
+import { gatewayRoutes } from '../core/routes.js';
 
 export interface AuditEvent {
   eventId: string;
@@ -61,7 +62,7 @@ export class AuditApi {
     }
 
     const suffix = query.size > 0 ? `?${query.toString()}` : '';
-    return this.transport.get(`/v1/audit-events${suffix}`, { correlationId: filters.correlationId ?? filters.intentId });
+    return this.transport.get(`${gatewayRoutes.auditEvents}${suffix}`, { correlationId: filters.correlationId ?? filters.intentId });
   }
 
   async getCorrelationTimeline(correlationId: string): Promise<TimelineEvent[]> {

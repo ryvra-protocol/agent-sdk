@@ -5,5 +5,6 @@ export * from './http.js';
 export * from './idempotency.js';
 export * from './logging.js';
 export * from './retry.js';
+export * from './routes.js';
 export * from './signing.js';
 export * from './types.js';

@@ -12,22 +12,14 @@ import {
   ValidationError,
 } from './errors.js';
 import { redactSensitiveFields } from './logging.js';
+import { GATEWAY_ROUTE_PREFIXES } from './routes.js';
 import { executeWithRetry } from './retry.js';
 import type { GatewayClientConfig, GatewayErrorPayload, RequestContext } from './types.js';
 import { AuthClient } from './auth.js';
 import { RequestSigner } from './signing.js';
 
-const ALLOWED_PATH_PREFIXES = [
-  '/v1/intents',
-  '/v1/agents',
-  '/v1/mandates',
-  '/v1/policy-decisions',
-  '/v1/risk-decisions',
-  '/v1/audit-events',
-];
-
 function isAllowedPath(path: string): boolean {
-  return ALLOWED_PATH_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`) || path.startsWith(`${prefix}?`));
+  return GATEWAY_ROUTE_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`) || path.startsWith(`${prefix}?`));
 }
 
 function parseResponseBody(text: string): unknown {

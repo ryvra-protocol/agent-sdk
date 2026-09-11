@@ -52,6 +52,7 @@ describe('AgentGatewayClient integration', () => {
     await expect(client.approveIntent(intent.intentId, { approverId: 'ops-1', decision: 'APPROVE' })).resolves.toEqual({ approved: true, intentId: intent.intentId });
     await expect(client.cancelIntent(intent.intentId)).resolves.toEqual({ cancelled: true, intentId: intent.intentId });
     await expect(client.getAgentStatus(intent.actorId)).resolves.toEqual({ agentId: intent.actorId, status: 'ACTIVE' });
+    await expect(client.suspendAgent(intent.actorId)).resolves.toEqual({ suspended: true, agentId: intent.actorId });
     await expect(client.getAuditEvents({ correlationId: intent.correlationId })).resolves.toHaveLength(2);
   });
 

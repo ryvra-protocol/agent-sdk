@@ -1,4 +1,5 @@
 import type { GatewayTransport } from '../core/http.js';
+import { gatewayRoutes } from '../core/routes.js';
 
 export interface DecisionRecord {
   decisionId: string;
@@ -11,10 +12,10 @@ export class PolicyRiskApi {
   constructor(private readonly transport: GatewayTransport) {}
 
   getPolicyDecision(decisionId: string): Promise<DecisionRecord> {
-    return this.transport.get(`/v1/policy-decisions/${decisionId}`, { correlationId: decisionId });
+    return this.transport.get(gatewayRoutes.policyDecision(decisionId), { correlationId: decisionId });
   }
 
   getRiskDecision(decisionId: string): Promise<DecisionRecord> {
-    return this.transport.get(`/v1/risk-decisions/${decisionId}`, { correlationId: decisionId });
+    return this.transport.get(gatewayRoutes.riskDecision(decisionId), { correlationId: decisionId });
   }
 }

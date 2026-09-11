@@ -111,6 +111,12 @@ export async function startMockGateway() {
       return;
     }
 
+    if (request.method === 'POST' && url.pathname.endsWith('/suspend')) {
+      const agentId = url.pathname.split('/')[3] ?? '';
+      response.end(JSON.stringify({ suspended: true, agentId }));
+      return;
+    }
+
     if (request.method === 'GET' && url.pathname === '/v1/audit-events') {
       response.end(JSON.stringify([
         {
