@@ -14,6 +14,19 @@ export interface ApprovalPayload {
   note?: string;
 }
 
+export interface SubmitIntentResponse<TIntent extends FinancialIntent<any, any>> {
+  accepted: boolean;
+  intent: TIntent;
+}
+
+export interface IntentStatusResponse<TIntent extends FinancialIntent<any, any>> {
+  intent: TIntent;
+  status: string;
+  reasonCode?: string;
+  correlationId?: string;
+  details?: Record<string, unknown>;
+}
+
 export class AgentGatewayClient {
   readonly agents: AgentsApi;
   readonly mandates: MandatesApi;
@@ -31,7 +44,7 @@ export class AgentGatewayClient {
     this.audit = new AuditApi(this.#transport);
   }
 
-  async submitIntent<TIntent extends FinancialIntent<any, any>>(intent: TIntent, options: SubmitIntentOptions = {}): Promise<{ accepted: boolean; intent: TIntent }> {
+  async submitIntent<TIntent extends FinancialIntent<any, any>>(intent: TIntent, options: SubmitIntentOptions = {}): Promise<SubmitIntentResponse<TIntent>> {
     validateFinancialIntent(intent, this.#clockSkewMs);
     ensureKnownCapability(intent, options.knownCapabilities ?? options.mandate?.capabilities);
     ensureMandateActive(intent, options.mandate, this.#clockSkewMs);
@@ -43,7 +56,7 @@ export class AgentGatewayClient {
     }, true);
   }
 
-  getIntent<TIntent extends FinancialIntent<any, any>>(intentId: string, correlationId?: string): Promise<{ intent: TIntent; status: string }> {
+  getIntent<TIntent extends FinancialIntent<any, any>>(intentId: string, correlationId?: string): Promise<IntentStatusResponse<TIntent>> {
     return this.#transport.get(gatewayRoutes.intent(intentId), correlationId ? { correlationId } : {});
   }
 

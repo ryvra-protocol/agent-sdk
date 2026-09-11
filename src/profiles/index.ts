@@ -442,13 +442,14 @@ export abstract class AutonomousProfileClient<TProfileType extends AutonomousPro
     });
 
     return {
-      ...result,
+      accepted: result.accepted,
+      intent: result.intent,
       warnings: validation.warnings,
     };
   }
 
   async getIntentDecision<TIntent extends FinancialIntent = FinancialIntent>(intentId: string, correlationId?: string): Promise<GatewayDecision<TIntent>> {
-    const response = await this.client.getIntent<TIntent>(intentId, correlationId) as GatewayDecisionResponse<TIntent>;
+    const response = await this.client.getIntent<TIntent>(intentId, correlationId);
     return normalizeGatewayDecision(response);
   }
 
