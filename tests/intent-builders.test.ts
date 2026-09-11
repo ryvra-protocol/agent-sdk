@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildPayIntent,
+  buildOpenPositionIntent,
   buildTradeIntent,
   createIdempotencyKey,
   ensureWithinSoftLimit,
@@ -81,5 +82,25 @@ describe('intent builders', () => {
     });
 
     expect(() => ensureWithinSoftLimit(intent, '1000000000000000000.0000000000')).toThrowError(ValidationError);
+  });
+
+  it('fails closed for malformed soft-limit values', () => {
+    const intent = buildPayIntent({
+      ...baseFields,
+      amount: { value: '10.00', currency: 'USD' },
+      recipientId: 'vendor-1',
+    });
+
+    expect(() => ensureWithinSoftLimit(intent, 'oops')).toThrowError(ValidationError);
+  });
+
+  it('enforces action-specific runtime enums', () => {
+    expect(() => buildOpenPositionIntent({
+      ...baseFields,
+      assetId: 'BTC',
+      amount: { value: '1', currency: 'BTC' },
+      instrumentId: 'BTC-PERP',
+      side: 'BUY' as never,
+    })).toThrowError(ValidationError);
   });
 });

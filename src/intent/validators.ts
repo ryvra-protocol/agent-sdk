@@ -50,6 +50,94 @@ function normalizeExpiresAt(input: BaseIntentInput): string {
   return parsed.toISOString();
 }
 
+function assertAllowedValue(
+  action: FinancialIntentAction,
+  field: string,
+  value: unknown,
+  allowedValues: string[],
+  input: Pick<BaseIntentInput, 'intentId' | 'correlationId'>,
+): void {
+  if (value === undefined) {
+    return;
+  }
+
+  if (typeof value !== 'string' || !allowedValues.includes(value)) {
+    throw new ValidationError(`Invalid ${action} detail field: ${field}`, {
+      reasonCode: 'VALIDATION_INVALID_ENUM',
+      intentId: input.intentId,
+      correlationId: input.correlationId,
+      details: { action, field, allowedValues },
+    });
+  }
+}
+
+function assertAmountShape(
+  action: FinancialIntentAction,
+  details: Record<string, unknown>,
+  input: Pick<BaseIntentInput, 'intentId' | 'correlationId'>,
+): void {
+  if (!('amount' in details) || details.amount === undefined) {
+    return;
+  }
+
+  if (
+    !details.amount
+    || typeof details.amount !== 'object'
+    || !('value' in details.amount)
+    || typeof details.amount.value !== 'string'
+    || details.amount.value.trim() === ''
+  ) {
+    throw new ValidationError(`Invalid ${action} amount payload`, {
+      reasonCode: 'VALIDATION_INVALID_AMOUNT',
+      intentId: input.intentId,
+      correlationId: input.correlationId,
+      details: { action },
+    });
+  }
+}
+
+function assertActionSpecificRules(
+  action: FinancialIntentAction,
+  details: Record<string, unknown>,
+  input: Pick<BaseIntentInput, 'intentId' | 'correlationId'>,
+): void {
+  assertAmountShape(action, details, input);
+
+  switch (action) {
+    case 'TRADE':
+      assertAllowedValue(action, 'side', details.side, ['BUY', 'SELL'], input);
+      assertAllowedValue(action, 'orderType', details.orderType, ['MARKET', 'LIMIT'], input);
+      if (details.orderType === 'LIMIT' && (typeof details.limitPrice !== 'string' || details.limitPrice.trim() === '')) {
+        throw new ValidationError('LIMIT trade intents require limitPrice', {
+          reasonCode: 'VALIDATION_REQUIRED_FIELD',
+          intentId: input.intentId,
+          correlationId: input.correlationId,
+          details: { action, field: 'limitPrice' },
+        });
+      }
+      break;
+    case 'OPEN_POSITION':
+      assertAllowedValue(action, 'side', details.side, ['LONG', 'SHORT'], input);
+      break;
+    case 'REBALANCE':
+      if (
+        !details.targetAllocation
+        || typeof details.targetAllocation !== 'object'
+        || Object.keys(details.targetAllocation).length === 0
+      ) {
+        throw new ValidationError('REBALANCE intents require a non-empty targetAllocation', {
+          reasonCode: 'VALIDATION_REQUIRED_FIELD',
+          intentId: input.intentId,
+          correlationId: input.correlationId,
+          details: { action, field: 'targetAllocation' },
+        });
+      }
+      break;
+    default:
+      break;
+  }
+}
+
 export function buildIntent<TAction extends FinancialIntentAction, TDetails extends object>(
   action: TAction,
   input: BaseIntentInput,
@@ -122,4 +210,6 @@ export function validateIntentDetails(
       });
     }
   }
+
+  assertActionSpecificRules(action, entries, input);
 }

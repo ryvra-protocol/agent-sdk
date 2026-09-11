@@ -142,7 +142,12 @@ export function ensureWithinSoftLimit(intent: FinancialIntent<any, any>, softLim
 
   const comparison = compareDecimalStrings(amount, softLimit);
   if (comparison === undefined) {
-    return;
+    throw new ValidationError('Intent amount or soft limit is not a valid decimal value', {
+      reasonCode: 'SOFT_LIMIT_INVALID_DECIMAL',
+      intentId: intent.intentId,
+      correlationId: intent.correlationId,
+      details: { amount, softLimit },
+    });
   }
 
   if (comparison > 0) {
