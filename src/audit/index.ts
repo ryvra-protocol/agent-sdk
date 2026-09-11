@@ -43,6 +43,8 @@ export interface DecisionTrace {
   payload?: Record<string, unknown>;
 }
 
+export type RunOutcomeGrouping = 'intent' | 'correlation';
+
 export interface RunOutcomeSummary {
   totalEvents: number;
   byStatus: Partial<Record<DecisionTraceStatus, number>>;
@@ -119,12 +121,12 @@ export function normalizeGatewayDecisionEvents(events: AuditEvent[]): DecisionTr
     }));
 }
 
-export function summarizeRunOutcomes(events: AuditEvent[]): RunOutcomeSummary {
+export function summarizeRunOutcomes(events: AuditEvent[], groupBy: RunOutcomeGrouping = 'intent'): RunOutcomeSummary {
   const traces = normalizeGatewayDecisionEvents(events);
   const latestByRun = new Map<string, DecisionTrace>();
 
   for (const trace of traces) {
-    const key = trace.intentId ?? trace.correlationId;
+    const key = groupBy === 'correlation' ? trace.correlationId : trace.intentId ?? trace.correlationId;
     latestByRun.set(key, trace);
   }
 

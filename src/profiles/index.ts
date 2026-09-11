@@ -486,12 +486,12 @@ export abstract class AutonomousProfileClient<TProfileType extends AutonomousPro
 
   async summarizeOutcomesByIntentId(intentId: string) {
     const events = await this.client.getAuditEvents({ intentId }) as AuditEvent[];
-    return summarizeRunOutcomes(events);
+    return summarizeRunOutcomes(events, 'intent');
   }
 
   async summarizeOutcomesByCorrelationId(correlationId: string) {
     const events = await this.client.getAuditEvents({ correlationId }) as AuditEvent[];
-    return summarizeRunOutcomes(events);
+    return summarizeRunOutcomes(events, 'correlation');
   }
 
   protected applyDefaults<TInput extends BaseIntentInput>(input: ProfileTemplateInput<TInput>, templateName: string): TInput {

@@ -1,6 +1,6 @@
 # agent-sdk
 
-`agent-sdk` is the Ryvra developer integration layer for autonomous treasury, portfolio, procurement, market, and settlement agents.
+`agent-sdk` is the Ryvra developer integration layer for gateway-only financial agents, including autonomous treasury, portfolio, procurement, market, and settlement profiles plus the underlying intent, audit, and policy-aware SDK building blocks.
 
 ## Philosophy
 
