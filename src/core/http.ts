@@ -97,7 +97,7 @@ export class GatewayTransport {
         const headers: Record<string, string> = {
           accept: 'application/json',
           authorization,
-          ...this.#signer.sign(method, url.pathname, body),
+          ...this.#signer.sign(method, `${url.pathname}${url.search}`, body),
         };
 
         if (context.correlationId) {

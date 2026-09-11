@@ -47,11 +47,11 @@ export class AgentGatewayClient {
   }
 
   approveIntent(intentId: string, approvalPayload: ApprovalPayload, correlationId = intentId): Promise<{ approved: boolean; intentId: string }> {
-    return this.#transport.post(`/v1/intents/${intentId}/approve`, approvalPayload, { correlationId }, true);
+    return this.#transport.post(`/v1/intents/${intentId}/approve`, approvalPayload, { correlationId }, false);
   }
 
   cancelIntent(intentId: string, correlationId = intentId): Promise<{ cancelled: boolean; intentId: string }> {
-    return this.#transport.post(`/v1/intents/${intentId}/cancel`, {}, { correlationId }, true);
+    return this.#transport.post(`/v1/intents/${intentId}/cancel`, {}, { correlationId }, false);
   }
 
   getAgentStatus(agentId: string): Promise<AgentStatus> {
