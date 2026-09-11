@@ -3,6 +3,7 @@ import {
   buildPayIntent,
   buildOpenPositionIntent,
   buildTradeIntent,
+  buildClosePositionIntent,
   createIdempotencyKey,
   ensureWithinSoftLimit,
   normalizeAuditEvents,
@@ -102,5 +103,15 @@ describe('intent builders', () => {
       instrumentId: 'BTC-PERP',
       side: 'BUY' as never,
     })).toThrowError(ValidationError);
+  });
+
+  it('fails closed when a soft limit is supplied for a non-amount intent', () => {
+    const intent = buildClosePositionIntent({
+      ...baseFields,
+      assetId: 'BTC',
+      positionId: 'pos-1',
+    });
+
+    expect(() => ensureWithinSoftLimit(intent, '10')).toThrowError(ValidationError);
   });
 });

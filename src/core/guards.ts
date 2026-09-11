@@ -137,7 +137,12 @@ export function ensureWithinSoftLimit(intent: FinancialIntent<any, any>, softLim
   const amount = rawAmount && typeof rawAmount === 'object' && 'value' in rawAmount ? String(rawAmount.value) : undefined;
 
   if (!amount) {
-    return;
+    throw new ValidationError('Intent does not expose a comparable amount for soft-limit enforcement', {
+      reasonCode: 'SOFT_LIMIT_UNSUPPORTED',
+      intentId: intent.intentId,
+      correlationId: intent.correlationId,
+      details: { action: intent.action, softLimit },
+    });
   }
 
   const comparison = compareDecimalStrings(amount, softLimit);

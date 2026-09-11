@@ -59,7 +59,7 @@ describe('logging redaction', () => {
         baseUrl: 'https://agent-gateway.ryvra.example',
         auth: 'token',
         signing: { keyId: 'key', secret: 'secret' },
-        fetchImplementation: vi.fn().mockResolvedValue(new Response('temporarily down', { status: 503 })),
+        fetchImplementation: vi.fn().mockResolvedValue(new Response('temporarily down', { status: 500 })),
         retry: { maxAttempts: 1 },
       });
 

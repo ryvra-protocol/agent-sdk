@@ -21,12 +21,10 @@ Use one of the typed builders:
 - `buildOpenPositionIntent`
 - `buildClosePositionIntent`
 
-Every agent-flow intent requires:
+Every builder input requires:
 
 - `intentId`
-- `actorType=AGENT`
 - `actorId`
-- `action`
 - `assetId`
 - `purpose`
 - `policyVersion`
@@ -34,6 +32,8 @@ Every agent-flow intent requires:
 - `idempotencyKey` (auto-generated if omitted)
 - `expiresAt`
 - `mandateId`
+
+The SDK derives `actorType=AGENT` and the action enum from the specific builder you call.
 
 ## 3. Submit through agent-gateway
 
