@@ -1,3 +1,4 @@
+import { AuthenticationError } from './errors.js';
 import type { TokenProvider } from './types.js';
 
 export class AuthClient {
@@ -9,9 +10,12 @@ export class AuthClient {
       : this.tokenProvider;
 
     if (!token) {
-      throw new Error('Missing gateway auth token');
+      throw new AuthenticationError('Missing gateway auth token', {
+        reasonCode: 'AUTH_TOKEN_MISSING',
+        status: 401,
+      });
     }
 
-    return `******;
+    return 'Bearer ' + token;
   }
 }

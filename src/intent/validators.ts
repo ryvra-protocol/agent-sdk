@@ -50,7 +50,7 @@ function normalizeExpiresAt(input: BaseIntentInput): string {
   return parsed.toISOString();
 }
 
-export function buildIntent<TAction extends FinancialIntentAction, TDetails extends Record<string, unknown>>(
+export function buildIntent<TAction extends FinancialIntentAction, TDetails extends object>(
   action: TAction,
   input: BaseIntentInput,
   details: TDetails,
@@ -96,9 +96,10 @@ export function validateFinancialIntent(intent: FinancialIntent, clockSkewMs = 3
 
 export function validateIntentDetails(
   action: FinancialIntentAction,
-  details: Record<string, unknown>,
+  details: object,
   input: Pick<BaseIntentInput, 'intentId' | 'correlationId'>,
 ): void {
+  const entries = details as Record<string, unknown>;
   const requiredByAction: Record<FinancialIntentAction, string[]> = {
     PAY: ['amount', 'recipientId'],
     TRANSFER: ['amount', 'destinationAccountId'],
@@ -111,7 +112,7 @@ export function validateIntentDetails(
   };
 
   for (const field of requiredByAction[action]) {
-    const value = details[field];
+    const value = entries[field];
     if (value === undefined || value === null || value === '') {
       throw new ValidationError(`Missing ${action} detail field: ${field}`, {
         reasonCode: 'VALIDATION_REQUIRED_FIELD',

@@ -15,7 +15,7 @@ export interface IntentAmount {
   currency?: string;
 }
 
-export interface FinancialIntent<TAction extends FinancialIntentAction = FinancialIntentAction, TDetails extends Record<string, unknown> = Record<string, unknown>> {
+export interface FinancialIntent<TAction extends FinancialIntentAction = FinancialIntentAction, TDetails extends object = Record<string, unknown>> {
   intentId: string;
   actorType: ActorType;
   actorId: string;
