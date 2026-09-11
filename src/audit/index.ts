@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import type { GatewayTransport } from '../core/http.js';
 
 export interface AuditEvent {
@@ -28,9 +29,10 @@ export interface TimelineEvent {
 }
 
 export function traceFromIntent(intentId: string): { intentId: string; traceparent: string } {
+  const traceId = createHash('sha256').update(intentId).digest('hex').slice(0, 32);
   return {
     intentId,
-    traceparent: `00-${intentId.replace(/-/g, '').padEnd(32, '0').slice(0, 32)}-0000000000000001-01`,
+    traceparent: `00-${traceId}-0000000000000001-01`,
   };
 }
 

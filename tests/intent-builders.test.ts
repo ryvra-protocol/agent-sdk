@@ -3,6 +3,7 @@ import {
   buildPayIntent,
   buildTradeIntent,
   createIdempotencyKey,
+  ensureWithinSoftLimit,
   normalizeAuditEvents,
   traceFromIntent,
   ValidationError,
@@ -53,7 +54,7 @@ describe('intent builders', () => {
   });
 
   it('exposes provenance helpers', () => {
-    expect(traceFromIntent('intent-123').traceparent).toMatch(/^00-/);
+    expect(traceFromIntent('intent-123').traceparent).toMatch(/^00-[0-9a-f]{32}-0000000000000001-01$/);
     expect(normalizeAuditEvents([
       {
         eventId: '2',
@@ -70,5 +71,15 @@ describe('intent builders', () => {
         timestamp: '2026-09-11T00:00:00.000Z',
       },
     ])[0]?.label).toBe('A');
+  });
+
+  it('preserves decimal precision for soft-limit checks', () => {
+    const intent = buildPayIntent({
+      ...baseFields,
+      amount: { value: '1000000000000000000.0000000001', currency: 'USD' },
+      recipientId: 'vendor-1',
+    });
+
+    expect(() => ensureWithinSoftLimit(intent, '1000000000000000000.0000000000')).toThrowError(ValidationError);
   });
 });
