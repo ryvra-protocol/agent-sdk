@@ -69,7 +69,7 @@ export interface AutonomousProfileConfig {
   maxExpiryWindowMs?: number;
 }
 
-export interface FinancialIntent<TAction extends FinancialIntentAction = FinancialIntentAction, TDetails extends object = Record<string, unknown>> {
+export interface FinancialIntent<TAction extends FinancialIntentAction = FinancialIntentAction, TDetails extends object = object> {
   intentId: string;
   actorType: ActorType;
   actorId: string;
@@ -95,7 +95,6 @@ export interface BaseIntentInput {
   actorType?: ActorType;
   actorId: string;
   assetId: string;
-  amount?: IntentAmount;
   chainId?: string;
   recipient?: string;
   venue?: string;
