@@ -190,6 +190,6 @@ describe('autonomous profile clients', () => {
 
     const summary = await settlement.summarizeOutcomesByCorrelationId('corr-denied-1');
     expect(summary.byStatus.DENIED).toBe(1);
-    expect(summary.byProfile.SETTLEMENT).toBe(2);
+    expect(summary.byProfile.SETTLEMENT).toBe(1);
   });
 });

@@ -121,11 +121,18 @@ export function normalizeGatewayDecisionEvents(events: AuditEvent[]): DecisionTr
 
 export function summarizeRunOutcomes(events: AuditEvent[]): RunOutcomeSummary {
   const traces = normalizeGatewayDecisionEvents(events);
+  const latestByRun = new Map<string, DecisionTrace>();
+
+  for (const trace of traces) {
+    const key = trace.intentId ?? trace.correlationId;
+    latestByRun.set(key, trace);
+  }
+
   const byStatus: Partial<Record<DecisionTraceStatus, number>> = {};
   const byProfile: Partial<Record<AutonomousProfileType, number>> = {};
   const byAgent: Record<string, number> = {};
 
-  for (const trace of traces) {
+  for (const trace of latestByRun.values()) {
     byStatus[trace.status] = (byStatus[trace.status] ?? 0) + 1;
     if (trace.profileType) {
       byProfile[trace.profileType] = (byProfile[trace.profileType] ?? 0) + 1;
@@ -136,7 +143,7 @@ export function summarizeRunOutcomes(events: AuditEvent[]): RunOutcomeSummary {
   }
 
   return {
-    totalEvents: traces.length,
+    totalEvents: latestByRun.size,
     byStatus,
     byProfile,
     byAgent,

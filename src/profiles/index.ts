@@ -158,6 +158,20 @@ function withAuthorityMetadata(metadata: Record<string, unknown> | undefined, au
   };
 }
 
+function deepFreeze<T>(value: T): Readonly<T> {
+  if (!value || typeof value !== 'object') {
+    return value as Readonly<T>;
+  }
+
+  for (const entry of Object.values(value as Record<string, unknown>)) {
+    if (entry && typeof entry === 'object') {
+      deepFreeze(entry);
+    }
+  }
+
+  return Object.freeze(value);
+}
+
 export function validateAutonomousProfileConfig(config: AutonomousProfileConfig): AutonomousProfileConfig {
   assertNonEmptyString(config.profileType, 'profileType', 'PROFILE_TYPE_REQUIRED');
   if (!PROFILE_ALLOWED_ACTIONS[config.profileType]) {
@@ -225,7 +239,7 @@ export function validateAutonomousProfileConfig(config: AutonomousProfileConfig)
     assertPositiveInteger(config.maxExpiryWindowMs, 'maxExpiryWindowMs', 'MAX_EXPIRY_WINDOW_INVALID');
   }
 
-  return Object.freeze({
+  return deepFreeze({
     ...config,
     actionAllowlist: [...config.actionAllowlist],
     spendLimits: config.spendLimits ? {
