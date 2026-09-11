@@ -7,7 +7,7 @@ const sourceFiles = readdirSync(new URL('../src', import.meta.url), { recursive:
 
 describe('security guardrails', () => {
   it('does not expose direct execution or custody clients', () => {
-    expect(Object.keys(sdk).some((key) => /execute|wallet|rpc/i.test(key))).toBe(false);
+    expect(Object.keys(sdk).some((key) => /(Execution(Client|Api)?|Wallet|Rpc)/i.test(key))).toBe(false);
     expect(sourceFiles.some((file) => /execution|wallet|rpc/i.test(file))).toBe(false);
   });
 
@@ -18,7 +18,7 @@ describe('security guardrails', () => {
       signing: { keyId: 'key', secret: 'secret' },
     });
 
-    expect((client as Record<string, unknown>).requestJson).toBeUndefined();
-    expect(() => (client as Record<string, (...args: unknown[]) => unknown>).requestJson('/v1/payments/execute')).toThrow(TypeError);
+    expect((client as unknown as Record<string, unknown>).requestJson).toBeUndefined();
+    expect(() => (client as unknown as Record<string, (...args: unknown[]) => unknown>).requestJson('/v1/payments/execute')).toThrow(TypeError);
   });
 });

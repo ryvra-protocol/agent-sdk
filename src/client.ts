@@ -30,7 +30,7 @@ export class AgentGatewayClient {
     this.audit = new AuditApi(this.#transport);
   }
 
-  async submitIntent<TIntent extends FinancialIntent>(intent: TIntent, options: SubmitIntentOptions = {}): Promise<{ accepted: boolean; intent: TIntent }> {
+  async submitIntent<TIntent extends FinancialIntent<any, any>>(intent: TIntent, options: SubmitIntentOptions = {}): Promise<{ accepted: boolean; intent: TIntent }> {
     validateFinancialIntent(intent, this.#clockSkewMs);
     ensureKnownCapability(intent, options.knownCapabilities ?? options.mandate?.capabilities);
     ensureMandateActive(intent, options.mandate, this.#clockSkewMs);
@@ -42,7 +42,7 @@ export class AgentGatewayClient {
     }, true);
   }
 
-  getIntent<TIntent extends FinancialIntent>(intentId: string, correlationId = intentId): Promise<{ intent: TIntent; status: string }> {
+  getIntent<TIntent extends FinancialIntent<any, any>>(intentId: string, correlationId = intentId): Promise<{ intent: TIntent; status: string }> {
     return this.#transport.get(`/v1/intents/${intentId}`, { correlationId });
   }
 
