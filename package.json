@@ -45,6 +45,26 @@
     "./audit": {
       "types": "./dist/audit/index.d.ts",
       "import": "./dist/audit/index.js"
+    },
+    "./profiles": {
+      "types": "./dist/profiles/index.d.ts",
+      "import": "./dist/profiles/index.js"
+    },
+    "./portfolio": {
+      "types": "./dist/portfolio/index.d.ts",
+      "import": "./dist/portfolio/index.js"
+    },
+    "./procurement": {
+      "types": "./dist/procurement/index.d.ts",
+      "import": "./dist/procurement/index.js"
+    },
+    "./market": {
+      "types": "./dist/market/index.d.ts",
+      "import": "./dist/market/index.js"
+    },
+    "./settlement": {
+      "types": "./dist/settlement/index.d.ts",
+      "import": "./dist/settlement/index.js"
     }
   },
   "files": [
