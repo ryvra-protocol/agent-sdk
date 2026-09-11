@@ -27,7 +27,7 @@ const treasuryConfig = {
   },
   timeoutDefaults: { submitMs: 1_000, statusMs: 1_000, approvalMs: 1_000 },
   maxExpiryWindowMs: 10 * 60_000,
-};
+} satisfies import('../src/index.js').AutonomousProfileConfig;
 
 const portfolioConfig = {
   profileType: 'PORTFOLIO' as const,
@@ -38,7 +38,7 @@ const portfolioConfig = {
     policyVersion: '2026-09',
     riskAssessmentId: 'risk-portfolio-1',
   },
-};
+} satisfies import('../src/index.js').AutonomousProfileConfig;
 
 describe('autonomous profile support', () => {
   it('validates profile config schema', () => {
