@@ -30,6 +30,18 @@ function isAllowedPath(path: string): boolean {
   return ALLOWED_PATH_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`) || path.startsWith(`${prefix}?`));
 }
 
+function parseResponseBody(text: string): unknown {
+  if (!text) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return text;
+  }
+}
+
 export function mapGatewayError(status: number, payload: GatewayErrorPayload = {}): GatewayError {
   const message = payload.message ?? `Agent gateway request failed with status ${status}`;
   const metadata = {
@@ -123,10 +135,25 @@ export class GatewayTransport {
         });
 
         const text = await response.text();
-        const payload = text ? JSON.parse(text) as unknown : undefined;
+        const payload = parseResponseBody(text);
 
         if (!response.ok) {
-          throw mapGatewayError(response.status, (payload ?? {}) as GatewayErrorPayload);
+          if (payload && typeof payload === 'object') {
+            throw mapGatewayError(response.status, payload as GatewayErrorPayload);
+          }
+
+          if (response.status >= 500) {
+            throw new GatewayUnavailableError(typeof payload === 'string' && payload ? payload : 'Agent gateway is unavailable', {
+              reasonCode: 'GATEWAY_UNAVAILABLE',
+              correlationId: context.correlationId,
+              status: response.status,
+            });
+          }
+
+          throw mapGatewayError(response.status, {
+            message: typeof payload === 'string' && payload ? payload : undefined,
+            correlationId: context.correlationId,
+          });
         }
 
         return payload as T;

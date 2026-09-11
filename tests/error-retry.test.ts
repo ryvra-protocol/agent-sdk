@@ -3,6 +3,7 @@ import {
   AuthenticationError,
   AuthorizationError,
   GatewayUnavailableError,
+  GatewayTransport,
   PolicyDeniedError,
   RateLimitError,
   ReplayDetectedError,
@@ -49,6 +50,20 @@ describe('logging redaction', () => {
     })).toEqual({
       authorization: '[REDACTED]',
       nested: { signature: '[REDACTED]', keep: 'ok' },
+    });
+  });
+
+  describe('transport parsing', () => {
+    it('keeps malformed 5xx responses typed', async () => {
+      const transport = new GatewayTransport({
+        baseUrl: 'https://agent-gateway.ryvra.example',
+        auth: 'token',
+        signing: { keyId: 'key', secret: 'secret' },
+        fetchImplementation: vi.fn().mockResolvedValue(new Response('temporarily down', { status: 503 })),
+        retry: { maxAttempts: 1 },
+      });
+
+      await expect(transport.get('/v1/intents/intent-1')).rejects.toBeInstanceOf(GatewayUnavailableError);
     });
   });
 });

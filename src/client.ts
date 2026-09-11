@@ -34,7 +34,7 @@ export class AgentGatewayClient {
     validateFinancialIntent(intent, this.#clockSkewMs);
     ensureKnownCapability(intent, options.knownCapabilities ?? options.mandate?.capabilities);
     ensureMandateActive(intent, options.mandate, this.#clockSkewMs);
-    ensureWithinSoftLimit(intent, options.softLimit);
+    ensureWithinSoftLimit(intent, options.softLimit ?? options.mandate?.softLimits?.[intent.assetId]);
 
     return this.#transport.post('/v1/intents', { intent }, {
       correlationId: intent.correlationId,

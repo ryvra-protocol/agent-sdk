@@ -1,15 +1,66 @@
 import { CapabilityMismatchError, ValidationError } from './errors.js';
 import type { FinancialIntent, FinancialIntentAction, KnownMandate } from './types.js';
 
+function trimLeadingZeros(value: string): string {
+  let index = 0;
+  while (index < value.length - 1 && value[index] === '0') {
+    index += 1;
+  }
+
+  return value.slice(index);
+}
+
+function trimTrailingZeros(value: string): string {
+  let index = value.length;
+  while (index > 0 && value[index - 1] === '0') {
+    index -= 1;
+  }
+
+  return value.slice(0, index);
+}
+
 function normalizeDecimal(value: string): { negative: boolean; whole: string; fraction: string } | undefined {
-  const match = value.trim().match(/^([+-])?(\d+)(?:\.(\d+))?$/);
-  if (!match) {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
     return undefined;
   }
 
-  const negative = match[1] === '-';
-  const whole = match[2].replace(/^0+(?=\d)/, '') || '0';
-  const fraction = (match[3] ?? '').replace(/0+$/, '');
+  let cursor = 0;
+  let negative = false;
+  if (trimmed[cursor] === '+' || trimmed[cursor] === '-') {
+    negative = trimmed[cursor] === '-';
+    cursor += 1;
+  }
+
+  if (cursor >= trimmed.length) {
+    return undefined;
+  }
+
+  let whole = '';
+  while (cursor < trimmed.length && trimmed[cursor] >= '0' && trimmed[cursor] <= '9') {
+    whole += trimmed[cursor];
+    cursor += 1;
+  }
+
+  let fraction = '';
+  if (cursor < trimmed.length) {
+    if (trimmed[cursor] !== '.') {
+      return undefined;
+    }
+
+    cursor += 1;
+    while (cursor < trimmed.length && trimmed[cursor] >= '0' && trimmed[cursor] <= '9') {
+      fraction += trimmed[cursor];
+      cursor += 1;
+    }
+  }
+
+  if (cursor !== trimmed.length || whole.length === 0) {
+    return undefined;
+  }
+
+  whole = trimLeadingZeros(whole) || '0';
+  fraction = trimTrailingZeros(fraction);
   return { negative, whole, fraction };
 }
 

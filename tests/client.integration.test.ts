@@ -3,6 +3,7 @@ import {
   AgentGatewayClient,
   PolicyDeniedError,
   ReplayDetectedError,
+  ValidationError,
   buildPayIntent,
   buildTradeIntent,
 } from '../src/index.js';
@@ -98,5 +99,25 @@ describe('AgentGatewayClient integration', () => {
 
     expect(gateway.state.lastRequest?.headers['x-correlation-id']).toBe(intent.correlationId);
     expect(gateway.state.lastRequest?.headers['idempotency-key']).toBe(intent.idempotencyKey);
+  });
+
+  it('enforces soft limits from the known mandate when no explicit override is provided', async () => {
+    const client = createClient(gateway.baseUrl);
+    const intent = buildPayIntent({
+      ...baseFields,
+      intentId: 'intent-mandate-soft-limit-1',
+      correlationId: 'corr-mandate-soft-limit-1',
+      amount: { value: '101.00', currency: 'USD' },
+      recipientId: 'vendor-4',
+    });
+
+    await expect(client.submitIntent(intent, {
+      mandate: {
+        mandateId: intent.mandateId,
+        capabilities: ['PAY'],
+        softLimits: { USD: '100.00' },
+      },
+    })).rejects.toBeInstanceOf(ValidationError);
+    expect(gateway.state.lastRequest).toBeUndefined();
   });
 });
